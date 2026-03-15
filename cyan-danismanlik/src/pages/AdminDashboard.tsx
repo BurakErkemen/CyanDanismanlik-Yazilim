@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"blog" | "team" | "messages" | "popup" | "settings" | "accounting">("blog");
+  const [activeTab, setActiveTab] = useState<"blog" | "team" | "messages" | "popup" | "settings" | "accounting">("accounting");
 
   useEffect(() => {
     const unsubscribe = onAuthChange((u: User | null) => {

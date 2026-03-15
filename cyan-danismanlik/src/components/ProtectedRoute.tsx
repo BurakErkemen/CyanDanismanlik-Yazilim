@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { onAuthChange } from "../lib/authService";
+import { onAuthChange, isAdmin } from "../lib/authService";
 import { type User } from "firebase/auth";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [admin, setAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthChange((u) => setUser(u));
+    const unsubscribe = onAuthChange(async (u) => {
+      setUser(u);
+      if (u) {
+        const adminStatus = await isAdmin();
+        setAdmin(adminStatus);
+      } else {
+        setAdmin(false);
+      }
+    });
     return () => unsubscribe();
   }, []);
 
-  if (user === undefined) {
+  if (user === undefined || admin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0a0a0a" }}>
         <p className="text-gray-400">Yükleniyor...</p>
@@ -19,7 +28,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     );
   }
 
-  if (user === null) {
+  if (!user || !admin) {
     return <Navigate to="/admin" replace />;
   }
 

@@ -24,3 +24,10 @@ export async function createUser(email: string, password: string): Promise<User>
 export function onAuthChange(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
 }
+
+export async function isAdmin(): Promise<boolean> {
+  const user = auth.currentUser;
+  if (!user) return false;
+  const tokenResult = await user.getIdTokenResult(true);
+  return tokenResult.claims.admin === true;
+}

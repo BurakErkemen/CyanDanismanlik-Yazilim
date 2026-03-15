@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useForm } from "@formspree/react";
 import { saveContact } from "../lib/contactService";
 import { Timestamp } from "firebase/firestore";
 import { getHomeSettings, getActiveTestimonials, type HomeSettings, type Testimonial } from "../lib/settingsService";
@@ -9,10 +8,11 @@ import SEO from "../components/SEO";
 export default function Home() {
   const [settings, setSettings] = useState<HomeSettings | null>(null);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [state, handleFormspree] = useForm("xaqpbzad");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -25,12 +25,35 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitting(true);
     try {
-      await saveContact({ name, email, message, date: Timestamp.now(), read: false });
+      await saveContact({
+        name,
+        email,
+        message,
+        date: Timestamp.now(),
+        read: false,
+      });
     } catch (err) {
       console.error("Firestore kayıt hatası:", err);
     }
-    await handleFormspree(e as unknown as React.FormEvent<HTMLFormElement>);
+    try {
+      const response = await fetch("https://formspree.io/f/xaqpbzad", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      if (response.ok) {
+        setSubmitted(true);
+        setName("");
+        setEmail("");
+        setMessage("");
+      }
+    } catch (err) {
+      console.error("Form gönderme hatası:", err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!settings) {
@@ -42,13 +65,13 @@ export default function Home() {
   }
 
   return (
-    
     <main style={{ backgroundColor: "#0a0a0a" }}>
       <SEO
         title="Cyan Danışmanlık | KOSGEB Danışmanlık Hizmetleri"
         description="KOSGEB danışmanlığında profesyonel çözümler. Başvuru dosyası hazırlama, iş planı, destek takibi ve yazılım hizmetleri."
         url="https://cyandanismanlik.com"
       />
+
       {/* Hero */}
       <section className="py-24 px-4" style={{ backgroundColor: "#0a0a0a" }}>
         <div className="max-w-4xl mx-auto text-center">
@@ -154,7 +177,8 @@ export default function Home() {
             <p>✉️ info@cyandanismanlik.com</p>
             <p>🕐 Pzt–Cuma: 09:00–18:00 / Cmt: 10:00–14:00</p>
           </div>
-          {state.succeeded ? (
+
+          {submitted ? (
             <div className="rounded-xl p-8 border border-white/10 text-center" style={{ backgroundColor: "#111111" }}>
               <p className="text-2xl mb-2">✓</p>
               <p className="text-white font-semibold mb-1">Mesajınız iletildi!</p>
@@ -162,11 +186,42 @@ export default function Home() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="rounded-xl p-8 space-y-4 border border-white/10" style={{ backgroundColor: "#111111" }}>
-              <input type="text" name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adınız" required className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500" style={{ backgroundColor: "#1a1a1a" }} />
-              <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-posta" required className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500" style={{ backgroundColor: "#1a1a1a" }} />
-              <textarea name="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Mesajınız" rows={4} required className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500" style={{ backgroundColor: "#1a1a1a" }} />
-              <button type="submit" disabled={state.submitting} className="w-full font-semibold py-3 rounded-lg transition text-black disabled:opacity-50" style={{ backgroundColor: "#06b6d4" }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0891b2")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#06b6d4")}>
-                {state.submitting ? "Gönderiliyor..." : "Gönder"}
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Adınız"
+                required
+                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
+                style={{ backgroundColor: "#1a1a1a" }}
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-posta"
+                required
+                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
+                style={{ backgroundColor: "#1a1a1a" }}
+              />
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Mesajınız"
+                rows={4}
+                required
+                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
+                style={{ backgroundColor: "#1a1a1a" }}
+              />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full font-semibold py-3 rounded-lg transition text-black disabled:opacity-50"
+                style={{ backgroundColor: "#06b6d4" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0891b2")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#06b6d4")}
+              >
+                {submitting ? "Gönderiliyor..." : "Gönder"}
               </button>
             </form>
           )}

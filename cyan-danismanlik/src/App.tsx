@@ -12,6 +12,7 @@ import TeamDetail from "./pages/TeamDetail";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import PopupDisplay from "./components/PopupDisplay";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function Layout() {
   const location = useLocation();
@@ -30,8 +31,14 @@ function Layout() {
         <Route path="/ekip" element={<Ekip />} />
         <Route path="/ekip/:id" element={<TeamDetail />} />
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        
+        <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />        
       </Routes>
       {!isAdmin && <PopupDisplay />}
       {!isAdmin && <Footer />}
