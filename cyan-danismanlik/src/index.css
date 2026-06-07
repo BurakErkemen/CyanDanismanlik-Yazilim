@@ -1,32 +1,245 @@
 @import "tailwindcss";
+
+/* ============================================================
+   Cyan Danışmanlık — Design System
+   Premium dark theme · cyan brand · glow / gradient / glass
+   ============================================================ */
+
+@theme {
+  /* Surfaces (kept close to legacy values for seamless blending) */
+  --color-bg: #08090c;
+  --color-surface: #0f1115;
+  --color-surface-2: #14171d;
+  --color-inset: #1a1d24;
+
+  /* Brand — cyan */
+  --color-brand: #06b6d4;
+  --color-brand-light: #22d3ee;
+  --color-brand-dark: #0891b2;
+
+  /* Hairlines */
+  --color-line: rgba(255, 255, 255, 0.08);
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Keyframes */
+  --animate-fade-up: fade-up 0.7s var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 0.8s var(--ease-out-soft) both;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-aurora: aurora 18s ease-in-out infinite alternate;
+  --animate-shimmer: shimmer 2.5s linear infinite;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes aurora {
+  0%   { transform: translate(-8%, -6%) rotate(0deg) scale(1); }
+  100% { transform: translate(8%, 6%) rotate(8deg) scale(1.15); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+/* --- Cyberpunk loader keyframes --- */
+@keyframes cyber-scan {
+  0%   { transform: translateY(-120%); }
+  100% { transform: translateY(120%); }
+}
+@keyframes cyber-grid {
+  from { background-position: 0 0; }
+  to   { background-position: 0 40px; }
+}
+@keyframes cyber-flicker {
+  0%, 19%, 21%, 23%, 80%, 100% { opacity: 1; }
+  20%, 22%, 55%                { opacity: 0.45; }
+}
+@keyframes cyber-glitch-x {
+  0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+  20%      { clip-path: inset(10% 0 75% 0); transform: translate(-3px, 0); }
+  40%      { clip-path: inset(60% 0 12% 0); transform: translate(3px, 0); }
+  60%      { clip-path: inset(35% 0 45% 0); transform: translate(-2px, 0); }
+  80%      { clip-path: inset(80% 0 5% 0);  transform: translate(2px, 0); }
+}
+@keyframes cyber-bar {
+  0%   { width: 5%; }
+  50%  { width: 85%; }
+  100% { width: 98%; }
+}
+@keyframes cyber-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ----------------------------------------------------------------
+   Base
+   ---------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   padding: 0;
+  background-color: var(--color-bg);
+  color: #e5e7eb;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
+/* Ambient aurora that lives behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20% -10% auto -10%;
+  height: 70vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 75% 10%, rgba(34, 211, 238, 0.14), transparent 70%),
+    radial-gradient(45% 55% at 20% 0%, rgba(8, 145, 178, 0.16), transparent 70%);
+  filter: blur(20px);
+  /* Static gradient — animating a full-viewport blurred layer re-rasterizes
+     every frame and makes scrolling feel sluggish. */
+}
+
+/* Subtle grid texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Keep app content above the ambient layers */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------
+   Utilities (composed design-system helpers)
+   ---------------------------------------------------------------- */
+@layer utilities {
+  /* Gradient brand text */
+  .text-gradient {
+    background-image: linear-gradient(120deg, #e8fcff 0%, var(--color-brand-light) 50%, var(--color-brand) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+
+  /* Glass-like panel — translucent dark surface with a top sheen.
+     Intentionally avoids backdrop-filter: over a near-black page the blur
+     is invisible but forces expensive per-frame compositing on scroll. */
+  .glass {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+      rgba(15, 17, 21, 0.88);
+    border: 1px solid var(--color-line);
+  }
+
+  /* Brand glow shadows */
+  .glow-brand {
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25), 0 14px 40px -12px rgba(34, 211, 238, 0.45);
+  }
+  .glow-soft {
+    box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Animated gradient border on hover via mask */
+  .ring-hover {
+    transition: border-color 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft), transform 0.3s var(--ease-out-soft);
+  }
+  .ring-hover:hover {
+    border-color: rgba(34, 211, 238, 0.45);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.18), 0 24px 60px -28px rgba(34, 211, 238, 0.4);
+  }
+
+  /* Section vertical rhythm helpers */
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+
+  /* Scroll-reveal: hidden until element enters the viewport (see <Reveal />) */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s var(--ease-out-soft), transform 0.7s var(--ease-out-soft);
+    will-change: opacity, transform;
+  }
+  .reveal-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ----------------------------------------------------------------
+   Blog markdown (prose)
+   ---------------------------------------------------------------- */
 .prose h1, .prose h2, .prose h3 {
   color: white;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
-
 .prose p {
   margin-bottom: 1rem;
   color: #d1d5db;
 }
-
 .prose ul, .prose ol {
   padding-left: 1.5rem;
   margin-bottom: 1rem;
   color: #d1d5db;
 }
-
 .prose a {
-  color: #06b6d4;
+  color: var(--color-brand);
   text-decoration: underline;
 }
-
 .prose strong {
   color: white;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb {
+  background: #1f242c;
+  border-radius: 8px;
+  border: 2px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: #2a3038; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,12 +1,31 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { saveContact } from "../lib/contactService";
 import { Timestamp } from "firebase/firestore";
-import { getHomeSettings, getActiveTestimonials, type HomeSettings, type Testimonial } from "../lib/settingsService";
-import SEO from "../components/SEO";
+import { saveContact } from "@/lib/contactService";
+import {
+  getHomeSettings,
+  getActiveTestimonials,
+  defaultSettings,
+  type Testimonial,
+} from "@/lib/settingsService";
+import SEO from "@/components/seo/SEO";
+import heroImg from "@/assets/hero.png";
+import {
+  Section,
+  Container,
+  Card,
+  CardAccent,
+  Button,
+  Input,
+  Textarea,
+  Eyebrow,
+  SectionHeading,
+  buttonClass,
+} from "@/components/ui";
 
 export default function Home() {
-  const [settings, setSettings] = useState<HomeSettings | null>(null);
+  // Render default content instantly; hydrate from Firestore when it arrives.
+  const [settings, setSettings] = useState(defaultSettings);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,9 +35,13 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchData() {
-      const [s, t] = await Promise.all([getHomeSettings(), getActiveTestimonials()]);
-      setSettings(s);
-      setTestimonials(t);
+      try {
+        const [s, t] = await Promise.all([getHomeSettings(), getActiveTestimonials()]);
+        setSettings(s);
+        setTestimonials(t);
+      } catch (err) {
+        console.error("Anasayfa içeriği yüklenemedi:", err);
+      }
     }
     fetchData();
   }, []);
@@ -56,16 +79,8 @@ export default function Home() {
     }
   }
 
-  if (!settings) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0a0a0a" }}>
-        <p className="text-gray-400">Yükleniyor...</p>
-      </div>
-    );
-  }
-
   return (
-    <main style={{ backgroundColor: "#0a0a0a" }}>
+    <main>
       <SEO
         title="Cyan Danışmanlık | KOSGEB Danışmanlık Hizmetleri"
         description="KOSGEB danışmanlığında profesyonel çözümler. Başvuru dosyası hazırlama, iş planı, destek takibi ve yazılım hizmetleri."
@@ -73,160 +88,168 @@ export default function Home() {
       />
 
       {/* Hero */}
-      <section className="py-24 px-4" style={{ backgroundColor: "#0a0a0a" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-medium mb-4 tracking-widest uppercase" style={{ color: "#06b6d4" }}>
-            Profesyonel Danışmanlık
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            {settings.hero.title}
-          </h1>
-          <p className="text-lg text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            {settings.hero.subtitle}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/kosgeb"
-              className="font-semibold px-8 py-3 rounded-lg transition text-black"
-              style={{ backgroundColor: "#06b6d4" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0891b2")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#06b6d4")}
-            >
-              Hizmetlerimizi Keşfet
-            </Link>
-            <a
-              href="#iletisim"
-              className="border font-semibold px-8 py-3 rounded-lg transition text-white hover:bg-white/10"
-              style={{ borderColor: "#06b6d4", color: "#06b6d4" }}
-            >
-              Ücretsiz Danışmanlık Al
-            </a>
+      <section className="relative overflow-hidden px-4 pt-20 pb-24 sm:pt-28">
+        <Container width="wide" className="px-0">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="animate-fade-up text-center lg:text-left">
+              <div className="mb-5 flex justify-center lg:justify-start">
+                <Eyebrow>Profesyonel Danışmanlık</Eyebrow>
+              </div>
+              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <span className="text-gradient">{settings.hero.title}</span>
+              </h1>
+              <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-gray-400 lg:mx-0">
+                {settings.hero.subtitle}
+              </p>
+              <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
+                <Link to="/kosgeb" className={buttonClass("primary", "lg")}>
+                  Hizmetlerimizi Keşfet
+                </Link>
+                <a href="#iletisim" className={buttonClass("outline", "lg")}>
+                  Ücretsiz Danışmanlık Al
+                </a>
+              </div>
+            </div>
+
+            {/* Hero visual */}
+            <div className="relative hidden lg:block">
+              <div className="absolute -inset-8 rounded-full bg-brand/20 opacity-40 blur-3xl" />
+              <img
+                src={heroImg}
+                alt=""
+                className="animate-float relative w-full max-w-lg drop-shadow-[0_30px_60px_rgba(34,211,238,0.25)]"
+              />
+            </div>
           </div>
-        </div>
+        </Container>
       </section>
 
-      {/* İstatistikler */}
-      <section className="py-12 px-4 border-y border-white/10">
-        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 text-center">
+      {/* Stats */}
+      <Section width="wide" className="py-12 sm:py-12">
+        <div className="grid grid-cols-3 gap-4 sm:gap-8">
           {settings.stats.map((stat, i) => (
-            <div key={i}>
-              <p className="text-4xl font-bold" style={{ color: "#06b6d4" }}>{stat.value}</p>
-              <p className="text-gray-400 mt-1 text-sm">{stat.label}</p>
+            <div
+              key={i}
+              className="glass rounded-2xl px-4 py-6 text-center"
+            >
+              <p className="text-3xl font-bold text-gradient sm:text-4xl">{stat.value}</p>
+              <p className="mt-1.5 text-xs text-gray-400 sm:text-sm">{stat.label}</p>
             </div>
           ))}
         </div>
-      </section>
+      </Section>
 
-      {/* Hizmetler */}
-      <section className="py-16 px-4" style={{ backgroundColor: "#0a0a0a" }}>
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-white mb-3">Hizmetlerimiz</h2>
-          <p className="text-center text-gray-400 mb-12">İşletmeniz için kapsamlı danışmanlık çözümleri</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {settings.services.map((item, i) => (
-              <Link
-                key={i}
-                to={item.link}
-                className="rounded-xl p-6 border border-white/10 hover:border-cyan-500/50 transition group"
-                style={{ backgroundColor: "#111111" }}
-              >
-                <div className="w-8 h-0.5 mb-4 transition-all group-hover:w-12" style={{ backgroundColor: "#06b6d4" }} />
-                <h3 className="text-base font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
-              </Link>
+      {/* Services */}
+      <Section divider>
+        <SectionHeading
+          eyebrow="Hizmetlerimiz"
+          title="İşletmeniz için kapsamlı çözümler"
+          subtitle="KOSGEB, yazılım ve dijital büyüme alanlarında uçtan uca danışmanlık."
+        />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {settings.services.map((item, i) => (
+            <Link key={i} to={item.link} className="group">
+              <Card interactive className="h-full p-6">
+                <CardAccent className="mb-5" />
+                <h3 className="mb-2 text-base font-semibold text-white transition group-hover:text-brand-light">
+                  {item.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-gray-400">{item.desc}</p>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </Section>
+
+      {/* About */}
+      <Section divider width="narrow">
+        <div className="text-center">
+          <SectionHeading eyebrow="Hakkımızda" title="Biz Kimiz?" className="mb-6" />
+          <p className="mx-auto max-w-2xl leading-relaxed text-gray-400">{settings.about}</p>
+        </div>
+      </Section>
+
+      {/* Testimonials */}
+      {testimonials.length > 0 && (
+        <Section divider>
+          <SectionHeading eyebrow="Referanslar" title="Müşteri Yorumları" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {testimonials.map((t) => (
+              <Card key={t.id} className="p-6">
+                <p className="mb-4 text-3xl leading-none text-brand/40">“</p>
+                <p className="mb-4 text-sm leading-relaxed text-gray-300">{t.text}</p>
+                <div className="border-t border-white/10 pt-4">
+                  <p className="text-sm font-medium text-white">{t.name}</p>
+                  <p className="text-xs text-gray-500">{t.company}</p>
+                </div>
+              </Card>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Hakkımızda */}
-      <section className="py-16 px-4 border-t border-white/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">Hakkımızda</h2>
-          <p className="text-gray-400 leading-relaxed max-w-2xl mx-auto">{settings.about}</p>
-        </div>
-      </section>
-
-      {/* Müşteri Yorumları */}
-      {testimonials.length > 0 && (
-        <section className="py-16 px-4 border-t border-white/10">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-bold text-center text-white mb-12">Müşteri Yorumları</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <div key={t.id} className="rounded-xl p-6 border border-white/10" style={{ backgroundColor: "#111111" }}>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-4">"{t.text}"</p>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-white font-medium text-sm">{t.name}</p>
-                    <p className="text-gray-500 text-xs">{t.company}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        </Section>
       )}
 
-      {/* İletişim */}
-      <section id="iletisim" className="py-16 px-4 border-t border-white/10">
-        <div className="max-w-xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-white mb-10">İletişim</h2>
-          <div className="rounded-xl p-8 space-y-3 text-gray-400 text-sm mb-6 border border-white/10" style={{ backgroundColor: "#111111" }}>
-            <p>📍 47. Sokak, 17A — İskenderun / Hatay</p>
-            <p>📞 +90 (553) 776 31 69</p>
-            <p>✉️ info@cyandanismanlik.com</p>
-            <p>🕐 Pzt–Cuma: 09:00–18:00 / Cmt: 10:00–14:00</p>
-          </div>
+      {/* Contact */}
+      <Section divider id="iletisim" width="narrow">
+        <SectionHeading eyebrow="İletişim" title="Bize Ulaşın" />
 
-          {submitted ? (
-            <div className="rounded-xl p-8 border border-white/10 text-center" style={{ backgroundColor: "#111111" }}>
-              <p className="text-2xl mb-2">✓</p>
-              <p className="text-white font-semibold mb-1">Mesajınız iletildi!</p>
-              <p className="text-gray-400 text-sm">En kısa sürede size dönüş yapacağız.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="rounded-xl p-8 space-y-4 border border-white/10" style={{ backgroundColor: "#111111" }}>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Adınız"
-                required
-                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
-                style={{ backgroundColor: "#1a1a1a" }}
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-posta"
-                required
-                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
-                style={{ backgroundColor: "#1a1a1a" }}
-              />
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Mesajınız"
-                rows={4}
-                required
-                className="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none border border-white/10 focus:border-cyan-500"
-                style={{ backgroundColor: "#1a1a1a" }}
-              />
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full font-semibold py-3 rounded-lg transition text-black disabled:opacity-50"
-                style={{ backgroundColor: "#06b6d4" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0891b2")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#06b6d4")}
-              >
-                {submitting ? "Gönderiliyor..." : "Gönder"}
-              </button>
-            </form>
-          )}
+        <div className="grid gap-6 md:grid-cols-5">
+          <Card className="space-y-4 p-6 text-sm text-gray-400 md:col-span-2">
+            <p className="flex items-start gap-3">
+              <span className="text-brand-light">📍</span> 47. Sokak, 17A — İskenderun / Hatay
+            </p>
+            <p className="flex items-start gap-3">
+              <span className="text-brand-light">📞</span> +90 (553) 776 31 69
+            </p>
+            <p className="flex items-start gap-3">
+              <span className="text-brand-light">✉️</span> info@cyandanismanlik.com
+            </p>
+            <p className="flex items-start gap-3">
+              <span className="text-brand-light">🕐</span> Pzt–Cuma: 09:00–18:00 / Cmt: 10:00–14:00
+            </p>
+          </Card>
+
+          <div className="md:col-span-3">
+            {submitted ? (
+              <Card className="flex h-full flex-col items-center justify-center p-8 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand/15 text-2xl text-brand-light">
+                  ✓
+                </div>
+                <p className="mb-1 font-semibold text-white">Mesajınız iletildi!</p>
+                <p className="text-sm text-gray-400">En kısa sürede size dönüş yapacağız.</p>
+              </Card>
+            ) : (
+              <Card className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Adınız"
+                    required
+                  />
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E-posta"
+                    required
+                  />
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Mesajınız"
+                    rows={4}
+                    required
+                  />
+                  <Button type="submit" disabled={submitting} className="w-full">
+                    {submitting ? "Gönderiliyor..." : "Gönder"}
+                  </Button>
+                </form>
+              </Card>
+            )}
+          </div>
         </div>
-      </section>
+      </Section>
     </main>
   );
 }

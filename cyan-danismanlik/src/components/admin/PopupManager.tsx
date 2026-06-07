@@ -5,8 +5,8 @@ import {
   createPopup,
   updatePopup,
   deletePopup,
-} from "../lib/popupService";
-import { uploadImage } from "../lib/cloudinaryService";
+} from "@/lib/popupService";
+import { uploadImage } from "@/lib/cloudinaryService";
 
 export default function PopupManager() {
   const [popups, setPopups] = useState<Popup[]>([]);

@@ -7,8 +7,8 @@ import {
   createTeamMember,
   updateTeamMember,
   deleteTeamMember,
-} from "../lib/teamService";
-import { uploadImage } from "../lib/cloudinaryService";
+} from "@/lib/teamService";
+import { uploadImage } from "@/lib/cloudinaryService";
 
 export default function TeamManager() {
   const [members, setMembers] = useState<TeamMember[]>([]);

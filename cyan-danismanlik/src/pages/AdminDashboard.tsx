@@ -1,19 +1,31 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthChange, logout } from "../lib/authService";
+import { onAuthChange, logout } from "@/lib/authService";
 import { type User } from "firebase/auth";
-import BlogManager from "../components/BlogManager";
-import TeamManager from "../components/TeamManager";
-import MessagesManager from "../components/MessagesManager";
-import PopupManager from "../components/PopupManager";
-import SiteSettingsManager from "../components/SiteSettingsManager";
-import AccountingManager from "../components/AccountingDashboard";
+import BlogManager from "@/components/admin/BlogManager";
+import TeamManager from "@/components/admin/TeamManager";
+import MessagesManager from "@/components/admin/MessagesManager";
+import PopupManager from "@/components/admin/PopupManager";
+import SiteSettingsManager from "@/components/admin/SiteSettingsManager";
+import AccountingManager from "@/components/admin/AccountingDashboard";
+import { Container, PageLoader, cn } from "@/components/ui";
+
+type Tab = "accounting" | "messages" | "popup" | "blog" | "team" | "settings";
+
+const tabs: { key: Tab; label: string }[] = [
+  { key: "accounting", label: "Muhasebe" },
+  { key: "messages", label: "Mesajlar" },
+  { key: "popup", label: "Popup" },
+  { key: "blog", label: "Blog Yazıları" },
+  { key: "team", label: "Ekip Üyeleri" },
+  { key: "settings", label: "Site Ayarları" },
+];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"blog" | "team" | "messages" | "popup" | "settings" | "accounting">("accounting");
+  const [activeTab, setActiveTab] = useState<Tab>("accounting");
 
   useEffect(() => {
     const unsubscribe = onAuthChange((u: User | null) => {
@@ -32,68 +44,56 @@ export default function AdminDashboard() {
     navigate("/admin");
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0a0a0a" }}>
-        <p className="text-gray-400">Yükleniyor...</p>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0a0a0a" }}>
-      {/* Admin Navbar */}
-      <div className="border-b border-white/10 px-4 py-4 flex justify-between items-center" style={{ backgroundColor: "#0a0a0a" }}>
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Cyan Danışmanlık" className="h-10 w-auto" />
-          <span className="text-gray-400 text-sm border-l border-white/10 pl-3">Admin Panel</span>
+    <div className="min-h-screen">
+      {/* Admin header */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-bg/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Cyan Danışmanlık" className="h-10 w-auto" />
+            <span className="border-l border-white/10 pl-3 text-sm text-gray-400">Admin Panel</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-sm text-gray-500 md:block">{user?.email}</span>
+            <button
+              onClick={handleLogout}
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-400 transition hover:border-white/20 hover:text-white"
+            >
+              Çıkış Yap
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-500 text-sm hidden md:block">{user?.email}</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-400 hover:text-white border border-white/10 px-4 py-2 rounded-lg transition"
-          >
-            Çıkış Yap
-          </button>
-        </div>
-      </div>
+      </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Sekmeler */}
-        <div className="flex gap-2 mb-8 border-b border-white/10">
-          {[
-            { key: "accounting", label: "Muhasebe" },
-            { key: "messages", label: "Mesajlar" },
-            { key: "popup", label: "Popup" },
-            { key: "blog", label: "Blog Yazıları" },
-            { key: "team", label: "Ekip Üyeleri" },
-            { key: "settings", label: "Site Ayarları" },
-
-
-          ].map((tab) => (
+      <Container width="wide" className="py-8">
+        {/* Tabs */}
+        <div className="mb-8 flex gap-1 overflow-x-auto border-b border-white/10">
+          {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as "blog" | "team" | "messages" | "popup")}              
-              className="px-5 py-2.5 text-sm font-medium transition border-b-2 -mb-px"
-              style={{
-                borderColor: activeTab === tab.key ? "#06b6d4" : "transparent",
-                color: activeTab === tab.key ? "#06b6d4" : "#9ca3af",
-              }}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "-mb-px whitespace-nowrap border-b-2 px-5 py-2.5 text-sm font-medium transition",
+                activeTab === tab.key
+                  ? "border-brand text-brand-light"
+                  : "border-transparent text-gray-400 hover:text-white",
+              )}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* İçerik */}
+        {/* Content */}
         {activeTab === "accounting" && <AccountingManager />}
         {activeTab === "messages" && <MessagesManager />}
         {activeTab === "popup" && <PopupManager />}
         {activeTab === "blog" && <BlogManager />}
         {activeTab === "team" && <TeamManager />}
         {activeTab === "settings" && <SiteSettingsManager />}
-      </div>
+      </Container>
     </div>
   );
 }

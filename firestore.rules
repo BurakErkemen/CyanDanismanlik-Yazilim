@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Cyan Danışmanlık — Firestore güvenlik kuralları
+// Public site içerik koleksiyonlarını HERKES okuyabilir; yazma yalnızca
+// "admin" custom claim'ine sahip kullanıcılara açıktır (bkz. set-admin.js).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // --- Public içerik: herkes okur, sadece admin yazar ---
+    match /blog_posts/{id}    { allow read: if true; allow write: if isAdmin(); }
+    match /team_members/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /popups/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /site_settings/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // --- İletişim formu: herkes mesaj gönderebilir, yönetimi sadece admin yapar ---
+    match /contacts/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- Muhasebe verileri: tamamen admin'e özel ---
+    match /customers/{id}    { allow read, write: if isAdmin(); }
+    match /transactions/{id} { allow read, write: if isAdmin(); }
+    match /quotes/{id}       { allow read, write: if isAdmin(); }
+
+    // Tanımlanmamış her şey reddedilir
+    match /{document=**} { allow read, write: if false; }
+  }
+}

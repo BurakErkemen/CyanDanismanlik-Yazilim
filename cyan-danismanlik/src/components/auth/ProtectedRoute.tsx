@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { onAuthChange, isAdmin } from "../lib/authService";
+import { onAuthChange, isAdmin } from "@/lib/authService";
 import { type User } from "firebase/auth";
+import { PageLoader } from "@/components/ui";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [admin, setAdmin] = useState<boolean | null>(null);
 
@@ -21,11 +23,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }, []);
 
   if (user === undefined || admin === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0a0a0a" }}>
-        <p className="text-gray-400">Yükleniyor...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!user || !admin) {

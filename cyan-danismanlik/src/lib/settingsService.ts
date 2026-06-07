@@ -44,7 +44,7 @@ export interface Testimonial {
   active: boolean;
 }
 
-const defaultSettings: HomeSettings = {
+export const defaultSettings: HomeSettings = {
   hero: {
     title: "KOSGEB Desteğinde Profesyonel Çözümler",
     subtitle: "Cyan Danışmanlık olarak işletmenizi KOSGEB desteklerinden en verimli şekilde yararlandırıyor, büyüme yolculuğunuzda yanınızdayız.",

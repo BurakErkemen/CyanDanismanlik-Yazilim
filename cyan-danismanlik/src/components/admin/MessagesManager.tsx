@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   getDocs,
@@ -8,25 +8,26 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "../lib/firebase";
-import { type ContactMessage } from "../lib/contactService";
+import { db } from "@/lib/firebase";
+import { type ContactMessage } from "@/lib/contactService";
 
 export default function MessagesManager() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ContactMessage | null>(null);
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  async function fetchMessages() {
-    setLoading(true);
+  const fetchMessages = useCallback(async () => {
     const q = query(collection(db, "contacts"), orderBy("date", "desc"));
     const snapshot = await getDocs(q);
     setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as ContactMessage)));
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchMessages();
+    })();
+  }, [fetchMessages]);
 
   async function handleRead(msg: ContactMessage) {
     if (!msg.id) return;

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getPublishedPosts, type BlogPost } from "../lib/blogService";
-import SEO from "../components/SEO";
+import { getPublishedPosts, type BlogPost } from "@/lib/blogService";
+import SEO from "@/components/seo/SEO";
+import PageHero from "@/components/site/PageHero";
+import { Section, Card, CardAccent, SkeletonCard, Reveal } from "@/components/ui";
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -9,78 +11,63 @@ export default function Blog() {
 
   useEffect(() => {
     async function fetchPosts() {
-      const data = await getPublishedPosts();
-      setPosts(data);
-      setLoading(false);
+      try {
+        const data = await getPublishedPosts();
+        setPosts(data);
+      } catch (err) {
+        console.error("Blog yazıları yüklenemedi:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchPosts();
   }, []);
 
   return (
-    <main style={{ backgroundColor: "#0a0a0a" }}>
-    <SEO
-      title="Blog"
-      description="KOSGEB, yazılım ve dijital dönüşüm hakkında güncel yazılar ve makaleler."
-      url="https://cyandanismanlik.com/blog"
+    <main>
+      <SEO
+        title="Blog"
+        description="KOSGEB, yazılım ve dijital dönüşüm hakkında güncel yazılar ve makaleler."
+        url="https://cyandanismanlik.com/blog"
       />
-      
-      {/* Hero */}
-      <section className="py-16 px-4 border-b border-white/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <p
-            className="text-sm font-medium mb-4 tracking-widest uppercase"
-            style={{ color: "#06b6d4" }}
-          >
-            Blog
-          </p>
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Yazılar & Makaleler
-          </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            KOSGEB, yazılım ve dijital dönüşüm hakkında güncel yazılar.
-          </p>
-        </div>
-      </section>
 
-      {/* Yazılar */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          {loading ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Yükleniyor...</p>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Henüz yazı yayınlanmadı.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <Link
-                  key={post.id}
-                  to={`/blog/${post.slug}`}
-                  className="rounded-xl border border-white/10 hover:border-cyan-500/50 transition group overflow-hidden"
-                  style={{ backgroundColor: "#111111" }}
-                >
+      <PageHero
+        eyebrow="Blog"
+        title="Yazılar & Makaleler"
+        subtitle="KOSGEB, yazılım ve dijital dönüşüm hakkında güncel yazılar."
+      />
+
+      <Section>
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
+          <p className="py-20 text-center text-gray-400">Henüz yazı yayınlanmadı.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post, i) => (
+              <Reveal key={post.id} delay={(i % 3) * 90}>
+              <Link to={`/blog/${post.slug}`} className="group block h-full">
+                <Card interactive className="h-full overflow-hidden">
                   {post.coverImage && (
-                    <img
-                      src={post.coverImage}
-                      alt={post.title}
-                      className="w-full h-48 object-cover"
-                    />
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={post.coverImage}
+                        alt={post.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
                   )}
                   <div className="p-6">
-                    <div
-                      className="w-8 h-0.5 mb-4 transition-all group-hover:w-12"
-                      style={{ backgroundColor: "#06b6d4" }}
-                    />
-                    <h2 className="text-white font-semibold text-base mb-2 line-clamp-2">
+                    <CardAccent className="mb-4" />
+                    <h2 className="mb-2 line-clamp-2 text-base font-semibold text-white transition group-hover:text-brand-light">
                       {post.title}
                     </h2>
-                    <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
-                      {post.summary}
-                    </p>
-                    <p className="text-gray-600 text-xs mt-4">
+                    <p className="line-clamp-3 text-sm leading-relaxed text-gray-400">{post.summary}</p>
+                    <p className="mt-4 text-xs text-gray-600">
                       {post.date?.toDate().toLocaleDateString("tr-TR", {
                         day: "numeric",
                         month: "long",
@@ -88,12 +75,12 @@ export default function Blog() {
                       })}
                     </p>
                   </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Section>
     </main>
   );
 }

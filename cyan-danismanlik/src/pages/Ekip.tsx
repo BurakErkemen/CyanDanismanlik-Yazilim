@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getTeamMembers, type TeamMember } from "../lib/teamService";
-import SEO from "../components/SEO";
+import { getTeamMembers, type TeamMember } from "@/lib/teamService";
+import SEO from "@/components/seo/SEO";
+import PageHero from "@/components/site/PageHero";
+import { Section, Card, Badge, SkeletonCard } from "@/components/ui";
 
 export default function Ekip() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -9,110 +11,84 @@ export default function Ekip() {
 
   useEffect(() => {
     async function fetchMembers() {
-      const data = await getTeamMembers();
-      setMembers(data);
-      setLoading(false);
+      try {
+        const data = await getTeamMembers();
+        setMembers(data);
+      } catch (err) {
+        console.error("Ekip bilgisi yüklenemedi:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchMembers();
   }, []);
 
   return (
-    <main style={{ backgroundColor: "#0a0a0a" }}>
+    <main>
       <SEO
         title="Ekibimiz"
         description="Cyan Danışmanlık deneyimli danışman ekibi. KOSGEB ve yazılım alanında uzman kadromuzla tanışın."
         url="https://cyandanismanlik.com/ekip"
       />
-      {/* Hero */}
-      <section className="py-16 px-4 border-b border-white/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-medium mb-4 tracking-widest uppercase" style={{ color: "#06b6d4" }}>
-            Kadromuz
-          </p>
-          <h1 className="text-4xl font-bold text-white mb-4">Ekibimiz</h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Deneyimli danışman ekibimizle işletmenizin yanındayız.
-          </p>
-        </div>
-      </section>
 
-      {/* Ekip */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          {loading ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Yükleniyor...</p>
-            </div>
-          ) : members.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400">Ekip bilgisi henüz eklenmedi.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {members.map((member) => (
-                <Link
-                  key={member.id}
-                  to={`/ekip/${member.id}`}
-                  className="rounded-xl border border-white/10 overflow-hidden hover:border-cyan-500/50 transition block"
-                  style={{ backgroundColor: "#111111" }}
-                >
-                  {/* Fotoğraf */}
-                  <div className="h-56 flex items-center justify-center" style={{ backgroundColor: "#1a1a1a" }}>
+      <PageHero
+        eyebrow="Kadromuz"
+        title="Ekibimiz"
+        subtitle="Deneyimli danışman ekibimizle işletmenizin yanındayız."
+      />
+
+      <Section>
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : members.length === 0 ? (
+          <p className="py-20 text-center text-gray-400">Ekip bilgisi henüz eklenmedi.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {members.map((member) => (
+              <Link key={member.id} to={`/ekip/${member.id}`} className="group block">
+                <Card interactive className="h-full overflow-hidden">
+                  <div className="flex h-56 items-center justify-center overflow-hidden bg-inset/60">
                     {member.photo ? (
-                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                      <img
+                        src={member.photo}
+                        alt={member.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     ) : (
-                      <div
-                        className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold border-2"
-                        style={{ borderColor: "#06b6d4", color: "#06b6d4" }}
-                      >
+                      <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-brand text-4xl font-bold text-brand-light shadow-[0_0_30px_-6px_rgba(34,211,238,0.5)]">
                         {member.name.charAt(0)}
                       </div>
                     )}
                   </div>
 
-                  {/* Bilgiler */}
                   <div className="p-6">
-                    <h2 className="text-white font-bold text-lg">{member.name}</h2>
-                    <p className="text-sm mt-1 mb-4" style={{ color: "#06b6d4" }}>
-                      {member.title}
-                    </p>
+                    <h2 className="text-lg font-bold text-white">{member.name}</h2>
+                    <p className="mb-4 mt-1 text-sm text-brand-light">{member.title}</p>
 
-                    {/* Uzmanlık */}
                     {member.specialties.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="mb-4 flex flex-wrap gap-2">
                         {member.specialties.map((s: string, i: number) => (
-                          <span
-                            key={i}
-                            className="text-xs px-2 py-1 rounded-full border border-white/10 text-gray-300"
-                            style={{ backgroundColor: "#1a1a1a" }}
-                          >
-                            {s}
-                          </span>
+                          <Badge key={i}>{s}</Badge>
                         ))}
                       </div>
                     )}
 
-                    {/* İletişim */}
-                    <div className="space-y-2 text-sm text-gray-400 border-t border-white/10 pt-4">
-                      {member.email && (
-                        <p className="flex items-center gap-2">✉️ {member.email}</p>
-                      )}
-                      {member.phone && (
-                        <p className="flex items-center gap-2">📞 {member.phone}</p>
-                      )}
-                      {member.linkedin && (
-                        <p className="flex items-center gap-2" style={{ color: "#06b6d4" }}>
-                          LinkedIn →
-                        </p>
-                      )}
+                    <div className="space-y-2 border-t border-white/10 pt-4 text-sm text-gray-400">
+                      {member.email && <p className="flex items-center gap-2">✉️ {member.email}</p>}
+                      {member.phone && <p className="flex items-center gap-2">📞 {member.phone}</p>}
+                      {member.linkedin && <p className="text-brand-light">LinkedIn →</p>}
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Section>
     </main>
   );
 }

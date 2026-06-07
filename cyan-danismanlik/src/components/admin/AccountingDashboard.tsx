@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   type Transaction,
   type Customer,
@@ -21,7 +21,7 @@ import {
   generateQuoteNo,
   INCOME_CATEGORIES,
   EXPENSE_CATEGORIES,
-} from "../lib/accountingService";
+} from "@/lib/accountingService";
 import { Timestamp } from "firebase/firestore";
 
 type Section = "dashboard" | "income" | "expense" | "customers" | "quotes";
@@ -33,18 +33,19 @@ export default function AccountingManager() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  async function fetchAll() {
-    setLoading(true);
+  const fetchAll = useCallback(async () => {
     const [t, c, q] = await Promise.all([getTransactions(), getCustomers(), getQuotes()]);
     setTransactions(t);
     setCustomers(c);
     setQuotes(q);
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchAll();
+    })();
+  }, [fetchAll]);
 
   const income = transactions.filter((t) => t.type === "income");
   const expenses = transactions.filter((t) => t.type === "expense");
@@ -277,7 +278,7 @@ function TransactionSection({ type, transactions, customers, onRefresh, inputCla
       await onRefresh();
       setView("list");
       setEditItem(null);
-    } catch (err) {
+    } catch {
       alert("Kayıt hatası.");
     } finally {
       setSaving(false);
@@ -445,7 +446,7 @@ function CustomersSection({ customers, onRefresh, inputClass, inputStyle, cardSt
       await onRefresh();
       setView("list");
       setEditItem(null);
-    } catch (err) {
+    } catch {
       alert("Kayıt hatası.");
     } finally {
       setSaving(false);
@@ -613,7 +614,7 @@ function QuotesSection({ quotes, customers, onRefresh, inputClass, inputStyle, c
       await onRefresh();
       setView("list");
       setEditItem(null);
-    } catch (err) {
+    } catch {
       alert("Kayıt hatası.");
     } finally {
       setSaving(false);

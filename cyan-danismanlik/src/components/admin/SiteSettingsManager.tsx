@@ -8,7 +8,7 @@ import {
   createTestimonial,
   updateTestimonial,
   deleteTestimonial,
-} from "../lib/settingsService";
+} from "@/lib/settingsService";
 
 export default function SiteSettingsManager() {
   const [settings, setSettings] = useState<HomeSettings | null>(null);

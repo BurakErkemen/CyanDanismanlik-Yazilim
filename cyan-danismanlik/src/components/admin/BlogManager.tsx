@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { type BlogPost, getAllPosts, createPost, updatePost, deletePost, generateSlug } from "../lib/blogService";
-import { auth } from "../lib/firebase";
-import { uploadImage } from "../lib/cloudinaryService";
+import { type BlogPost, getAllPosts, createPost, updatePost, deletePost, generateSlug } from "@/lib/blogService";
+import { auth } from "@/lib/firebase";
+import { uploadImage } from "@/lib/cloudinaryService";
 import { Timestamp } from "firebase/firestore";
 import MDEditor from "@uiw/react-md-editor";
 

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getPostBySlug, type BlogPost } from "../lib/blogService";
+import { getPostBySlug, type BlogPost } from "@/lib/blogService";
 import MDEditor from "@uiw/react-md-editor";
-import SEO from "../components/SEO";
+import SEO from "@/components/seo/SEO";
+import { Container, PageLoader, buttonClass } from "@/components/ui";
 
 export default function BlogDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -13,40 +14,30 @@ export default function BlogDetail() {
   useEffect(() => {
     async function fetchPost() {
       if (!slug) return;
-      const data = await getPostBySlug(slug);
-      if (!data) {
+      try {
+        const data = await getPostBySlug(slug);
+        if (!data) {
+          setNotFound(true);
+        } else {
+          setPost(data);
+        }
+      } catch (err) {
+        console.error("Yazı yüklenemedi:", err);
         setNotFound(true);
-      } else {
-        setPost(data);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchPost();
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: "#0a0a0a" }}
-      >
-        <p className="text-gray-400">Yükleniyor...</p>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   if (notFound || !post) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4"
-        style={{ backgroundColor: "#0a0a0a" }}
-      >
-        <p className="text-white text-xl font-bold">Yazı bulunamadı.</p>
-        <Link
-          to="/blog"
-          className="text-sm font-medium px-5 py-2 rounded-lg text-black"
-          style={{ backgroundColor: "#06b6d4" }}
-        >
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <p className="text-xl font-bold text-white">Yazı bulunamadı.</p>
+        <Link to="/blog" className={buttonClass("primary", "sm")}>
           Blog'a Dön
         </Link>
       </div>
@@ -54,7 +45,7 @@ export default function BlogDetail() {
   }
 
   return (
-    <main style={{ backgroundColor: "#0a0a0a" }}>
+    <main>
       <SEO
         title={post.title}
         description={post.summary}
@@ -62,52 +53,47 @@ export default function BlogDetail() {
         image={post.coverImage || undefined}
         type="article"
       />
-      {/* Kapak */}
+
+      {/* Cover */}
       {post.coverImage && (
-        <div className="w-full h-72 md:h-96 overflow-hidden">
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="w-full h-full object-cover opacity-80"
-          />
+        <div className="relative h-72 w-full overflow-hidden md:h-96">
+          <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent" />
         </div>
       )}
 
-      {/* İçerik */}
-      <article className="max-w-3xl mx-auto px-4 py-12">
-        {/* Geri Dön */}
-        <Link
-          to="/blog"
-          className="text-sm text-gray-400 hover:text-white transition mb-8 inline-flex items-center gap-2"
-        >
-          ← Blog'a Dön
-        </Link>
+      <article className={post.coverImage ? "-mt-20 relative" : ""}>
+        <Container width="narrow" className="py-12">
+          <Link
+            to="/blog"
+            className="mb-8 inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-brand-light"
+          >
+            ← Blog'a Dön
+          </Link>
 
-        {/* Başlık */}
-        <h1 className="text-3xl md:text-4xl font-bold text-white mt-4 mb-4 leading-tight">
-          {post.title}
-        </h1>
+          <h1 className="mb-4 mt-4 text-3xl font-bold leading-tight text-white md:text-4xl">
+            {post.title}
+          </h1>
 
-        {/* Meta */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 pb-8 border-b border-white/10">
-          <span>
-            {post.date?.toDate().toLocaleDateString("tr-TR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
-          <span>•</span>
-          <span>{post.authorEmail}</span>
-        </div>
+          <div className="mb-8 flex items-center gap-3 border-b border-white/10 pb-8 text-sm text-gray-500">
+            <span>
+              {post.date?.toDate().toLocaleDateString("tr-TR", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+            <span className="text-brand/50">•</span>
+            <span>{post.authorEmail}</span>
+          </div>
 
-        {/* İçerik */}
-        <div data-color-mode="dark">
-          <MDEditor.Markdown
-            source={post.content}
-            style={{ backgroundColor: "transparent", color: "#d1d5db" }}
-          />
-        </div>
+          <div data-color-mode="dark" className="prose">
+            <MDEditor.Markdown
+              source={post.content}
+              style={{ backgroundColor: "transparent", color: "#d1d5db" }}
+            />
+          </div>
+        </Container>
       </article>
     </main>
   );
